@@ -9,20 +9,28 @@ class MercadolivreSpider(scrapy.Spider):
     def parse(self, response):
         products = response.css('div.ui-search-result__content')
 
+
         for product in products:
+            prices = product.css(
+                'span.andes-money-amount__fraction::text'
+            ).getall()
+            cents = product.css(
+                'span.andes-money-amount__cents.andes-money-amount__cents::text'
+            ).getall()
+            
             yield {
                 'brand': product.css(
                     'span.ui-search-item__brand-discoverability.ui-search-item__group__element::text'
                 ).get(),
-                'name': product.css(
-                    'h2.ui-search-item__title::text'
+                'name': product.css('h2.ui-search-item__title::text').get(),
+                'old_price_reais': prices[0] if len(prices) > 0 else None,
+                'old_price_centavos': cents[0] if len(cents) > 0 else None,
+                'new_price_reais': prices[1] if len(prices) > 1 else None,
+                'new_price_centavos': cents[1] if len(cents) > 1 else None,
+                'reviews_rating_number': product.css(
+                    'span.ui-search-reviews__rating-number::text'
                 ).get(),
-                'old_price': product.css(
-                    ' ::text'
+                'reviews_amount': product.css(
+                    'span.ui-search-reviews__amount::text'
                 ).get(),
-                'new_price': product.css(
-                    ' ::text'
-                ).get(),
-                'reviews_rating_number': product.css('span.ui-search-reviews__rating-number::text').get(),
-                'reviews_amount': product.css('span.ui-search-reviews__amount::text').get(),
             }
